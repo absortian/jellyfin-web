@@ -1,11 +1,11 @@
 {
-    "name": "Jellyfin",
-    "description": "The Free Software Media System",
+    "name": "AbsorFlix",
+    "description": "AbsorFlix — the Absor Technologies streaming client",
     "lang": "en-US",
-    "short_name": "Jellyfin",
+    "short_name": "AbsorFlix",
     "start_url": "index.html#/home",
-    "theme_color": "#101010",
-    "background_color": "#101010",
+    "theme_color": "#050507",
+    "background_color": "#050507",
     "display": "standalone",
     "icons": [
         {

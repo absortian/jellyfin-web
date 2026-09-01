@@ -52,7 +52,8 @@ function RootAppLayout() {
     return (
         <ThemeProvider
             theme={appTheme}
-            defaultMode='dark'
+            // @ts-expect-error The mode type only allows the built-in schemes, but custom scheme ids work at runtime
+            defaultMode='absorflix'
             storageManager={ThemeStorageManager}
         >
             <Backdrop />

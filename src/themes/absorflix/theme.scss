@@ -1,0 +1,308 @@
+/* AbsorFlix Glass — liquid glass theme based on the absor.top design language */
+
+/* Glass surface tints (darkest chrome -> lightest panel) */
+$glass-panel: rgba(20, 22, 30, 0.44);
+$glass-input: rgba(16, 18, 26, 0.55);
+$glass-raised: rgba(28, 31, 42, 0.6);
+$glass-chrome: rgba(11, 13, 19, 0.68);
+
+/* Hairline border and diagonal sheen shared by every glass surface */
+$glass-border: rgba(255, 255, 255, 0.08);
+$inner-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 30%, transparent 55%);
+
+/* Brand accent */
+$accent: #0a84ff;
+$accent-gradient: linear-gradient(135deg, #0a84ff, #7c8cff);
+$accent-gradient-hover: linear-gradient(135deg, #3d95ff, #8f9dff);
+
+/* Ambient glows over the near-black base */
+$ambient-glow:
+    radial-gradient(circle at 12% -8%, rgba(10, 132, 255, 0.26) 0%, transparent 68%),
+    radial-gradient(circle at 88% 8%, rgba(124, 140, 255, 0.2) 0%, transparent 68%),
+    radial-gradient(circle at 50% 115%, rgba(88, 86, 214, 0.18) 0%, transparent 68%);
+
+/* Opaque stand-ins used when backdrop-filter is unavailable (TV, old browsers) */
+$opaque-fallback: rgba(13, 15, 21, 0.94);
+
+@use "../_base/theme" with (
+    // Theme options
+    $dark: true,
+    $rounded-person-cards: false,
+
+    // Color palette
+    $background-default: #050507,
+    $background-defaultImage: $ambient-glow,
+    $background-paper: #14161e,
+    $primary-main: #0a84ff,
+    $primary-dark: #0668cc,
+    $primary-light: #6baeff,
+    $primary-contrastText: #fff,
+    $secondary-main: #7c8cff,
+    $secondary-contrastText: #05070d,
+    $text-primary: #f5f7ff,
+    $text-secondary: rgba(235, 240, 255, 0.72),
+    $action-focus: rgba(10, 132, 255, 0.24),
+    $action-hover: rgba(255, 255, 255, 0.06),
+    $divider: rgba(255, 255, 255, 0.08),
+
+    // Components
+    $appBar-defaultBg: $glass-chrome,
+    $appBar-gradient: $inner-highlight,
+    $appBar-transparentBg: rgba(5, 5, 7, 0.3),
+    $surface-overlay: $glass-panel,
+    $filledInput-bg: $glass-input,
+    $filledInput-borderColor: $glass-border,
+    $card-borderRadius: 0.9em,
+    $alert-infoFilledBg: #0a84ff,
+    $alert-infoFilledColor: #fff,
+    $button-inheritContainedBg: $glass-raised,
+    $button-inheritContainedHoverBg: rgba(10, 132, 255, 0.2),
+    $snackbarContent-bg: #1c1f2a,
+    $snackbarContent-color: rgba(245, 247, 255, 0.92)
+);
+
+@mixin glass($bg: $glass-panel, $blur: 20px) {
+    background-color: $bg;
+    background-image: $inner-highlight;
+    border: 1px solid $glass-border;
+    backdrop-filter: blur($blur) saturate(180%);
+}
+
+/* Ambient background stays fixed while content scrolls */
+.backgroundContainer,
+html {
+    background-attachment: fixed;
+}
+
+/* Header: frosted chrome. The base theme force-disables blur on the
+   semi-transparent header, so it must be re-enabled here (same specificity,
+   later in the cascade). The video OSD header keeps its blur disabled in
+   videoosd.scss. */
+.skinHeader-withBackground {
+    border-bottom: 1px solid $glass-border;
+    backdrop-filter: blur(28px) saturate(180%);
+}
+
+.skinHeader.semiTransparent {
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.detailRibbon {
+    backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Cards: rounded glass, sheen and depth without per-card blur */
+.visualCardBox,
+.paperList {
+    border: 1px solid $glass-border;
+    background-image: $inner-highlight;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.collapseContent,
+.formDialogFooter:not(.formDialogFooter-clear),
+.formDialogHeader:not(.formDialogHeader-clear) {
+    border-radius: 0.9em;
+}
+
+.layout-tv .formDialogFooter:not(.formDialogFooter-clear) {
+    border-radius: 0;
+}
+
+/* Folder/placeholder card colours drawn from the accent scale */
+.defaultCardBackground1 {
+    background-color: #0857b0;
+}
+
+.defaultCardBackground2 {
+    background-color: #5856d6;
+}
+
+.defaultCardBackground3 {
+    background-color: #063f80;
+}
+
+.defaultCardBackground4 {
+    background-color: #7c8cff;
+}
+
+.defaultCardBackground5 {
+    background-color: #042a55;
+}
+
+/* Drawer: heavy frosted chrome */
+.mainDrawer,
+.drawer-open {
+    background-color: $glass-chrome;
+    background-image: $inner-highlight;
+    border-right: 1px solid $glass-border;
+    backdrop-filter: blur(40px) saturate(190%);
+}
+
+.navMenuOption {
+    border-radius: 14px;
+    margin: 0.15em 0.6em;
+}
+
+.navMenuOption-selected {
+    background: $accent-gradient !important;
+    color: #fff;
+}
+
+/* Dialogs and menus */
+.dialog {
+    background-color: rgba(16, 18, 26, 0.72);
+    background-image: $inner-highlight;
+    border: 1px solid $glass-border;
+    border-radius: 24px;
+    backdrop-filter: blur(40px) saturate(190%);
+}
+
+.dialog-fullscreen,
+.dialog-fullscreen-lowres {
+    border-radius: 0;
+    border: 0;
+}
+
+.actionSheet {
+    @include glass($glass-raised, 28px);
+    border-radius: 20px;
+}
+
+.actionSheetMenuItem {
+    border-radius: 14px;
+}
+
+.actionSheetMenuItem:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Footer / now playing bar */
+.appfooter {
+    background: $glass-chrome;
+    background-image: $inner-highlight;
+    border-top: 1px solid $glass-border;
+    backdrop-filter: blur(28px) saturate(180%);
+}
+
+/* Pill buttons */
+a[data-role="button"],
+.fab,
+.raised,
+.button-submit,
+.emby-tab-button,
+.alphaPickerButton {
+    border-radius: 100em;
+}
+
+a[data-role="button"],
+.raised {
+    border: 1px solid $glass-border;
+}
+
+.button-submit {
+    background: $accent-gradient;
+    color: #fff;
+
+    &:hover {
+        background: $accent-gradient-hover;
+    }
+}
+
+.emby-button.show-focus:focus {
+    background: $accent-gradient;
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(107, 174, 255, 0.6);
+}
+
+/* Text links use the light accent for contrast on dark glass */
+.button-link {
+    color: #6baeff;
+}
+
+/* Inputs: 14px radius, hairline border, accent focus ring */
+.emby-input,
+.emby-textarea {
+    border-radius: 14px;
+    border-width: 1px;
+    padding: 0.6em 0.9em;
+
+    &:focus {
+        border-color: $accent;
+        box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+    }
+}
+
+.emby-select-withcolor {
+    border-radius: 14px;
+    border-width: 1px;
+}
+
+.emby-checkbox:checked + span + .checkboxOutline {
+    border-color: $accent;
+}
+
+/* Rounded progress bars */
+progress,
+progress::-webkit-progress-bar,
+progress::-moz-progress-bar,
+progress::-webkit-progress-value,
+.itemProgressBar,
+.itemProgressBarForeground {
+    border-radius: 100em;
+}
+
+/* Media info badges */
+.mediaInfoText {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: $glass-border;
+    border-radius: 8px;
+}
+
+/* Scrollbars: translucent pills */
+* {
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: none;
+}
+
+::-webkit-scrollbar-track-piece {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb:horizontal,
+::-webkit-scrollbar-thumb:vertical {
+    border-radius: 100em;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+/* TV layout: no backdrop-filter (GPU cost); use near-opaque surfaces instead */
+.layout-tv {
+    .skinHeader-withBackground,
+    .skinHeader.semiTransparent,
+    .detailRibbon,
+    .mainDrawer,
+    .drawer-open,
+    .dialog,
+    .actionSheet,
+    .appfooter {
+        backdrop-filter: none !important;
+        background-color: $opaque-fallback;
+    }
+}
+
+/* Browsers without backdrop-filter get the same opaque fallback */
+@supports not (backdrop-filter: blur(1px)) {
+    .skinHeader-withBackground,
+    .skinHeader.semiTransparent,
+    .mainDrawer,
+    .drawer-open,
+    .dialog,
+    .actionSheet,
+    .appfooter {
+        background-color: $opaque-fallback;
+    }
+}

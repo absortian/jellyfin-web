@@ -34,8 +34,11 @@ export const DEFAULT_COLOR_SCHEME: ColorSystemOptions = {
 
 /** The default customizations to the default MUI theme. */
 export const DEFAULT_THEME_OPTIONS: ThemeOptions = {
+    shape: {
+        borderRadius: 14
+    },
     typography: {
-        fontFamily: '"Noto Sans", sans-serif',
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif',
         button: {
             textTransform: 'none'
         },
@@ -68,6 +71,11 @@ export const DEFAULT_THEME_OPTIONS: ThemeOptions = {
         MuiButton: {
             defaultProps: {
                 variant: 'contained'
+            },
+            styleOverrides: {
+                root: {
+                    borderRadius: 999
+                }
             },
             variants: [
                 {

@@ -1,14 +1,22 @@
+import { useCallback } from 'react';
+
 import { useThemes } from './useThemes';
 import { useUserSettings } from './useUserSettings';
 
-export const FALLBACK_THEME_ID = 'dark';
+export const FALLBACK_THEME_ID = 'absorflix';
 
 export function useUserTheme() {
     const { theme, dashboardTheme } = useUserSettings();
-    const { defaultTheme } = useThemes();
+    const { themes, defaultTheme } = useThemes();
+
+    // Saved settings may reference a theme that no longer exists
+    const validateTheme = useCallback((id?: string | null) => {
+        if (id && themes.some(t => t.id === id)) return id;
+        return defaultTheme?.id || FALLBACK_THEME_ID;
+    }, [ themes, defaultTheme ]);
 
     return {
-        theme: theme || defaultTheme?.id || FALLBACK_THEME_ID,
-        dashboardTheme: dashboardTheme || defaultTheme?.id || FALLBACK_THEME_ID
+        theme: validateTheme(theme),
+        dashboardTheme: validateTheme(dashboardTheme)
     };
 }
