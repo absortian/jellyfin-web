@@ -44,6 +44,7 @@ import { setBackdropTransparency, TRANSPARENCY_LEVEL } from '../../components/ba
 import Events from '../../utils/events.ts';
 import { includesAny } from '../../utils/container.ts';
 import { isHls } from '../../utils/mediaSource.ts';
+import { introCancelledError, shouldShowBrandIntro, showBrandIntro } from '../../components/playback/brandIntro';
 
 const NATIVE_UNSUPPORTED_SUBTITLE_CODECS = ['ssa', 'ass', 'pgssub', 'dvdsub', 'vobsub'];
 const ASS_SUBTITLE_CODECS = ['ssa', 'ass'];
@@ -231,6 +232,8 @@ const VOBSUB_DEBAND_RANGE = 15;
 const SECONDARY_TEXT_TRACK_INDEX = 1;
 
 export class HtmlVideoPlayer {
+    #playRequest = 0;
+    #cancelIntro;
     /**
      * @type {string}
      */
@@ -500,6 +503,9 @@ export class HtmlVideoPlayer {
     }
 
     async play(options) {
+        const request = ++this.#playRequest;
+        this.#cancelIntro?.();
+        this.#cancelIntro = null;
         this.#started = false;
         this.#timeUpdated = false;
 
@@ -514,9 +520,31 @@ export class HtmlVideoPlayer {
         }
 
         const elem = await this.createMediaElement(options);
+        if (request !== this.#playRequest) throw introCancelledError();
         this.#applyAspectRatio(options.aspectRatio || this.getAspectRatio());
 
         await this.updateVideoUrl(options);
+        if (request !== this.#playRequest) throw introCancelledError();
+
+        // Stream changes call play() too, but only a new item carries this flag.
+        if (options.showBrandIntro && shouldShowBrandIntro(options.item, options.fullscreen)) {
+            loading.hide();
+            const intro = showBrandIntro({
+                volume: elem.volume,
+                muted: elem.muted,
+                skipLabel: globalize.translate('MediaSegmentSkipPrompt', globalize.translate('MediaSegmentType.Intro'))
+            });
+            this.#cancelIntro = intro.cancel;
+            try {
+                await intro.finished;
+            } catch (error) {
+                if (request === this.#playRequest) this.destroy();
+                throw error;
+            } finally {
+                if (request === this.#playRequest) this.#cancelIntro = null;
+            }
+        }
+        if (request !== this.#playRequest) throw introCancelledError();
         return this.setCurrentSrc(elem, options);
     }
 
@@ -940,6 +968,9 @@ export class HtmlVideoPlayer {
     }
 
     stop(destroyPlayer) {
+        this.#playRequest++;
+        this.#cancelIntro?.();
+        this.#cancelIntro = null;
         const elem = this.#mediaElement;
         const src = this.#currentSrc;
 
@@ -961,6 +992,9 @@ export class HtmlVideoPlayer {
     }
 
     destroy() {
+        this.#playRequest++;
+        this.#cancelIntro?.();
+        this.#cancelIntro = null;
         this.setSubtitleOffset.cancel();
 
         destroyHlsPlayer(this);

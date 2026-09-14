@@ -35,8 +35,14 @@ import { MediaError } from 'types/mediaError';
 import { getMediaError } from 'utils/mediaError';
 import { bindSkipSegment } from './skipsegment.ts';
 import * as bitrateTest from 'utils/bitrateTest';
+import { createNativeBrandIntro } from './nativeBrandIntro';
 
 const UNLIMITED_ITEMS = -1;
+
+function enableBrandIntro() {
+    return !pluginManager.ofType(PluginType.SyncPlay)
+        .some(plugin => plugin.instance?.Manager?.isSyncPlayEnabled?.());
+}
 
 function enableLocalPlaylistManagement(player) {
     if (player.getPlaylist) {
@@ -712,6 +718,7 @@ function sortPlayerTargets(a, b) {
 export class PlaybackManager {
     constructor() {
         const self = this;
+        this._nativeBrandIntro = createNativeBrandIntro();
 
         const players = [];
         let currentTargetInfo;
@@ -2092,6 +2099,7 @@ export class PlaybackManager {
         self.getItemsForPlayback = getItemsForPlayback;
 
         self.play = async function (options) {
+            self._nativeBrandIntro.cancel();
             normalizePlayOptions(options);
 
             if (self._currentPlayer) {
@@ -2396,6 +2404,7 @@ export class PlaybackManager {
         }
 
         function cancelPlayback() {
+            self._nativeBrandIntro.cancel();
             const player = self._currentPlayer;
 
             if (player) {
@@ -2406,6 +2415,16 @@ export class PlaybackManager {
             Events.trigger(self, 'playbackcancelled');
         }
 
+        function onCancelledPlay(player, streamInfo) {
+            const data = getPlayerData(player);
+            // A newer play request may already own this player.
+            if (data.streamInfo !== streamInfo) return;
+            data.streamInfo = null;
+            removeCurrentPlayer(player);
+            loading.hide();
+            Events.trigger(self, 'playbackcancelled');
+        }
+
         function onInterceptorRejection() {
             cancelPlayback();
 
@@ -2413,6 +2432,10 @@ export class PlaybackManager {
         }
 
         function onPlaybackRejection(e) {
+            if (e?.name === 'AbortError') {
+                loading.hide();
+                return;
+            }
             cancelPlayback();
 
             let displayErrorCode = 'ErrorDefault';
@@ -2469,18 +2492,29 @@ export class PlaybackManager {
             }, reject);
         }
 
+        function playWithNativeIntro(player, item, fullscreen, startPlayback) {
+            loading.hide();
+            return self._nativeBrandIntro.play({
+                player,
+                item,
+                fullscreen,
+                enabled: enableBrandIntro(),
+                skipLabel: globalize.translate('MediaSegmentSkipPrompt', globalize.translate('MediaSegmentType.Intro'))
+            }, startPlayback);
+        }
+
         function sendPlaybackListToPlayer(player, items, deviceProfile, apiClient, mediaSourceId, options) {
             return setStreamUrls(items, deviceProfile, options.maxBitrate, apiClient, options.startPosition).then(function () {
                 loading.hide();
 
-                return player.play({
+                return playWithNativeIntro(player, items[options.startIndex || 0], options.fullscreen, () => player.play({
                     items,
                     startPositionTicks: options.startPosition || 0,
                     mediaSourceId,
                     audioStreamIndex: options.audioStreamIndex,
                     subtitleStreamIndex: options.subtitleStreamIndex,
                     startIndex: options.startIndex
-                });
+                }));
             });
         }
 
@@ -2640,12 +2674,18 @@ export class PlaybackManager {
                 return promise.then(function () {
                     const streamInfo = createStreamInfoFromUrlItem(item);
                     streamInfo.fullscreen = playOptions.fullscreen;
+                    streamInfo.showBrandIntro = enableBrandIntro();
                     getPlayerData(player).isChangingStream = false;
-                    return player.play(streamInfo).then(() => {
+                    getPlayerData(player).streamInfo = streamInfo;
+                    return playWithNativeIntro(player, item, playOptions.fullscreen, () => player.play(streamInfo)).then(() => {
                         loading.hide();
                         onPlaybackStartedFn();
                         onPlaybackStarted(player, playOptions, streamInfo);
                     }).catch((errorCode) => {
+                        if (errorCode?.name === 'AbortError') {
+                            onCancelledPlay(player, streamInfo);
+                            return;
+                        }
                         self.stop(player);
                         loading.hide();
                         showPlaybackInfoErrorMessage(self, errorCode || 'ErrorDefault');
@@ -2671,6 +2711,7 @@ export class PlaybackManager {
                 const subtitleStreamIndex = playOptions.subtitleStreamIndex;
                 const options = {
                     aspectRatio: playOptions.aspectRatio,
+                    fullscreen: playOptions.fullscreen,
                     maxBitrate,
                     startPosition,
                     isPlayback: null,
@@ -2730,6 +2771,7 @@ export class PlaybackManager {
                     const streamInfo = createStreamInfo(apiClient, item.MediaType, item, mediaSource, startPosition, player);
                     streamInfo.aspectRatio = playOptions.aspectRatio;
                     streamInfo.fullscreen = playOptions.fullscreen;
+                    streamInfo.showBrandIntro = enableBrandIntro();
 
                     const playerData = getPlayerData(player);
 
@@ -2737,11 +2779,15 @@ export class PlaybackManager {
                     playerData.maxStreamingBitrate = maxBitrate;
                     playerData.streamInfo = streamInfo;
 
-                    return player.play(streamInfo).then(function () {
+                    return playWithNativeIntro(player, item, playOptions.fullscreen, () => player.play(streamInfo)).then(function () {
                         loading.hide();
                         onPlaybackStartedFn();
                         onPlaybackStarted(player, playOptions, streamInfo, mediaSource);
                     }, function (err) {
+                        if (err?.name === 'AbortError') {
+                            onCancelledPlay(player, streamInfo);
+                            return;
+                        }
                         // TODO: Improve this because it will report playback start on a failure
                         onPlaybackStartedFn();
                         onPlaybackStarted(player, playOptions, streamInfo, mediaSource);
@@ -3981,6 +4027,7 @@ export class PlaybackManager {
     }
 
     stop(player) {
+        this._nativeBrandIntro.cancel();
         player = player || this._currentPlayer;
         if (player) {
             if (enableLocalPlaylistManagement(player)) {

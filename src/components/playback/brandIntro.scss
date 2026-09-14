@@ -1,0 +1,121 @@
+.absorflixIntro {
+    --intro-duration: 4200ms;
+
+    position: fixed;
+    z-index: 2147483646;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    isolation: isolate;
+}
+
+.absorflixIntro-logo {
+    width: 58vw;
+    max-width: 780px;
+    height: auto;
+    opacity: 0;
+    transform-origin: 8.7% 50%;
+    will-change: transform, opacity;
+}
+
+.absorflixIntro-lights {
+    position: absolute;
+    inset: -15% -10%;
+    opacity: 0;
+    background:
+        repeating-linear-gradient(90deg, transparent 0 1.1%, #00c9ff 1.2% 1.35%, transparent 1.5% 3.7%, #403aff 3.8% 4%, transparent 4.2% 6.1%),
+        repeating-linear-gradient(90deg, #000 0 2%, #002b83 2.2% 2.7%, #84e9ff 2.8% 2.9%, #005aff 3% 3.5%, #000 3.8% 7.1%, #5821bb 7.3% 8%, #000 8.3% 9.7%);
+    will-change: transform, opacity;
+}
+
+.absorflixIntro-playing .absorflixIntro-logo {
+    animation: absorflix-logo var(--intro-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.absorflixIntro-playing .absorflixIntro-lights {
+    animation: absorflix-lights var(--intro-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.absorflixIntro-skip {
+    position: absolute;
+    z-index: 1;
+    right: 5%;
+    bottom: 6%;
+    min-height: 44px;
+    padding: 0.65em 1.2em;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.absorflixIntro-skip:focus-visible,
+.absorflixIntro-skip:hover {
+    outline: 2px solid #00c9ff;
+    outline-offset: 4px;
+}
+
+@keyframes absorflix-logo {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+
+    12%,
+    42% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    65% {
+        opacity: 1;
+        transform: translateX(41.3%) scale(7);
+    }
+
+    78%,
+    100% {
+        opacity: 0;
+        transform: translateX(41.3%) scale(22);
+    }
+}
+
+@keyframes absorflix-lights {
+    0%,
+    53% {
+        opacity: 0;
+        transform: scaleX(0.025);
+    }
+
+    68% {
+        opacity: 1;
+        transform: scaleX(0.3);
+    }
+
+    82% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scaleX(1.8);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .absorflixIntro-playing .absorflixIntro-logo {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .absorflixIntro-playing .absorflixIntro-lights {
+        animation: none;
+    }
+}
