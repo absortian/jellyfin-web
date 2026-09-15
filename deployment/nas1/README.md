@@ -3,6 +3,9 @@
 Destino: `root@192.168.1.110`, Compose en `/mnt/user/system/docker-compose/jellyfin_new`.
 Imagen conservada: `linuxserver/jellyfin:10.11.6`.
 
+La configuración NVIDIA del servidor y su verificación están documentadas en
+[nvidia.md](nvidia.md). Conservar estos ajustes al recrear Jellyfin.
+
 El paquete se compila desde la rama `absorflix/10.11.6`, basada en el tag oficial
 `v10.11.6`. El árbol de trabajo está en `../jellyfin-web-10.11.6`.
 No se debe desplegar el `dist` de la rama de desarrollo 12.0 como este paquete.
