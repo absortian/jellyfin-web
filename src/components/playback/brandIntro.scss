@@ -26,18 +26,34 @@
     position: absolute;
     inset: -15% -10%;
     opacity: 0;
-    background:
-        repeating-linear-gradient(90deg, transparent 0 1.1%, #00c9ff 1.2% 1.35%, transparent 1.5% 3.7%, #403aff 3.8% 4%, transparent 4.2% 6.1%),
-        repeating-linear-gradient(90deg, #000 0 2%, #002b83 2.2% 2.7%, #84e9ff 2.8% 2.9%, #005aff 3% 3.5%, #000 3.8% 7.1%, #5821bb 7.3% 8%, #000 8.3% 9.7%);
+    background: repeating-linear-gradient(90deg, transparent 0 2%, #002b83 2.2% 2.7%, #84e9ff 2.8% 2.9%, #005aff 3% 3.5%, transparent 3.8% 7.1%, #5821bb 7.3% 8%, transparent 8.3% 9.7%);
     will-change: transform, opacity;
 }
 
+// A second, independently moving plane keeps the light field from looking
+// like a single still image being stretched. Only transforms/opacity animate.
+.absorflixIntro-lights::after {
+    position: absolute;
+    inset: 0 -10%;
+    background: repeating-linear-gradient(90deg, transparent 0 1.1%, #00c9ff 1.2% 1.35%, transparent 1.5% 3.7%, #403aff 3.8% 4%, transparent 4.2% 6.1%);
+    content: "";
+    will-change: transform;
+}
+
 .absorflixIntro-playing .absorflixIntro-logo {
-    animation: absorflix-logo var(--intro-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation:
+        absorflix-logo-zoom var(--intro-duration) linear both,
+        absorflix-logo-fade var(--intro-duration) linear both;
 }
 
 .absorflixIntro-playing .absorflixIntro-lights {
-    animation: absorflix-lights var(--intro-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation:
+        absorflix-lights-expand var(--intro-duration) linear both,
+        absorflix-lights-fade var(--intro-duration) linear both;
+}
+
+.absorflixIntro-playing .absorflixIntro-lights::after {
+    animation: absorflix-lights-drift var(--intro-duration) linear both;
 }
 
 .absorflixIntro-skip {
@@ -61,50 +77,73 @@
     outline-offset: 4px;
 }
 
-@keyframes absorflix-logo {
+// Keep movement separate from visibility: opacity landmarks must not restart
+// the zoom easing. The accelerating segment joins the initial drift at almost
+// the same speed and runs through the entire logo-to-lights transition.
+@keyframes absorflix-logo-zoom {
     0% {
-        opacity: 0;
-        transform: scale(0.85);
+        transform: translateX(0) scale(0.86);
     }
 
-    12%,
-    42% {
-        opacity: 1;
-        transform: scale(1);
+    36% {
+        transform: translateX(0) scale(1.04);
+        animation-timing-function: cubic-bezier(0.9, 0.01, 1, 1);
     }
 
-    65% {
-        opacity: 1;
-        transform: translateX(41.3%) scale(7);
-    }
-
-    78%,
+    84%,
     100% {
-        opacity: 0;
         transform: translateX(41.3%) scale(22);
     }
 }
 
-@keyframes absorflix-lights {
+@keyframes absorflix-logo-fade {
     0%,
-    53% {
+    100% {
         opacity: 0;
-        transform: scaleX(0.025);
     }
 
-    68% {
+    14%,
+    56% {
         opacity: 1;
-        transform: scaleX(0.3);
     }
 
     82% {
-        opacity: 1;
-        transform: scaleX(1);
+        opacity: 0;
+    }
+}
+
+@keyframes absorflix-lights-expand {
+    0%,
+    38% {
+        transform: scaleX(0.018);
+        animation-timing-function: cubic-bezier(0.32, 0, 0.65, 1);
     }
 
     100% {
-        opacity: 0;
         transform: scaleX(1.8);
+    }
+}
+
+@keyframes absorflix-lights-fade {
+    0%,
+    44%,
+    100% {
+        opacity: 0;
+    }
+
+    63%,
+    80% {
+        opacity: 1;
+    }
+}
+
+@keyframes absorflix-lights-drift {
+    from {
+        transform: translateX(-8%);
+    }
+
+    to {
+        transform: translateX(8%);
     }
 }
 
@@ -115,7 +154,8 @@
         transform: none;
     }
 
-    .absorflixIntro-playing .absorflixIntro-lights {
+    .absorflixIntro-playing .absorflixIntro-lights,
+    .absorflixIntro-playing .absorflixIntro-lights::after {
         animation: none;
     }
 }

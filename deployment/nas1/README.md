@@ -64,6 +64,17 @@ pruebas del overlay (conservación, rechazo de corrupción y recuperación ante 
 En el login público se comprobó Tab → foco visible → Enter → página de descarga;
 el APK conservó su SHA-256 y Jellyfin no se reinició.
 
+La mejora de fluidez de la intro está publicada como
+`10.11.6-absorflix-20260915-332c13f5`. Se separaron el zoom y los fundidos para
+evitar frenadas entre fases, y las luces se mueven en dos planos. La comparación
+del componente en Chrome (1512 × 744) midió una pausa visible del logo de 1208 ms
+antes y 0 ms después; es una medida del movimiento, no una garantía de FPS en TV.
+Pasaron las 17 pruebas de intro, Stylelint y la compilación de producción 10.11.6.
+Se verificaron el hash del CSS público y su carga en Chrome, la API y `/tv`.
+El overlay actualizó tres archivos web, conservando los originales en
+`/mnt/user/system/docker-compose/jellyfin_new/absorflix-intro-smooth-20260915-sbUz5I/release/overlay-backup/`.
+El contenedor mantuvo su fecha de arranque. El APK nativo usa su propia intro.
+
 ## Comprobación desde los clientes
 
 - Abrir `http://192.168.1.110:8096/web/` y hacer una recarga completa.
