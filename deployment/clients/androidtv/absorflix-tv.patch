@@ -13,7 +13,7 @@ index c25514a..3cdacfe 100644
 +*.keystore
 +*.jks
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index 5b2091f..ccfd6b3 100644
+index 5b2091f..3094201 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
 @@ -15,9 +15,10 @@ android {
@@ -24,8 +24,8 @@ index 5b2091f..ccfd6b3 100644
 -		versionName = project.getVersionName()
 -		versionCode = getVersionCode(versionName!!)
 +		applicationId = "top.absor.absorflix.tv"
-+		versionName = providers.gradleProperty("absorflix.version").getOrElse("1.0.0-preview.3")
-+		versionCode = providers.gradleProperty("absorflix.versionCode").getOrElse("3").toInt()
++		versionName = providers.gradleProperty("absorflix.version").getOrElse("1.0.0-preview.4")
++		versionCode = providers.gradleProperty("absorflix.versionCode").getOrElse("4").toInt()
 +		buildConfigField("String", "ABSORFLIX_SERVER_URL", "\"https://player.absor.top\"")
  	}
  
@@ -66,7 +66,7 @@ index 5b2091f..ccfd6b3 100644
  tasks.register("versionTxt") {
  	val path = layout.buildDirectory.asFile.get().resolve("version.txt")
 diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
-index 356abfc..7d14209 100644
+index 356abfc..4c03ef6 100644
 --- a/app/src/main/AndroidManifest.xml
 +++ b/app/src/main/AndroidManifest.xml
 @@ -6,6 +6,9 @@
@@ -79,9 +79,12 @@ index 356abfc..7d14209 100644
      <!-- Generic permissions -->
      <uses-permission android:name="android.permission.INTERNET" />
      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-@@ -46,6 +49,7 @@
+@@ -44,8 +47,9 @@
+         android:banner="@mipmap/app_banner"
+         android:dataExtractionRules="@xml/backup_rules"
          android:fullBackupContent="@xml/backup_content"
-         android:icon="@mipmap/app_icon"
+-        android:icon="@mipmap/app_icon"
++        android:icon="@mipmap/app_banner"
          android:label="@string/app_name"
 +        android:logo="@mipmap/app_banner"
          android:largeHeap="true"
@@ -8281,12 +8284,69 @@ index 0000000..4a89abd
 +		}
 +	}
 +})
+diff --git a/branding/LauncherIconProbe.java b/branding/LauncherIconProbe.java
+new file mode 100644
+index 0000000..514f60f
+--- /dev/null
++++ b/branding/LauncherIconProbe.java
+@@ -0,0 +1,51 @@
++import android.content.Context;
++import android.content.Intent;
++import android.content.pm.ApplicationInfo;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++import android.graphics.drawable.Drawable;
++
++/** Run with adb/app_process: inspect the installed release as an external launcher does. */
++public final class LauncherIconProbe {
++    private static boolean valid = true;
++
++    private static void check(String name, Drawable image) {
++        int width = image == null ? 0 : image.getIntrinsicWidth();
++        int height = image == null ? 0 : image.getIntrinsicHeight();
++        boolean horizontal = width > 0 && height > 0 && width * 9 == height * 16;
++        System.out.println(name + ": " + width + "x" + height + " "
++            + (image == null ? "missing" : image.getClass().getSimpleName())
++            + " " + (horizontal ? "PASS" : "FAIL"));
++        valid &= horizontal;
++    }
++
++    public static void main(String[] args) throws Exception {
++        android.os.Looper.prepareMainLooper();
++        // The shell process needs a framework Context; this is a diagnostic tool,
++        // never application code or a component in the APK.
++        Class<?> activityThread = Class.forName("android.app.ActivityThread");
++        Object thread = activityThread.getMethod("systemMain").invoke(null);
++        Context context = (Context) activityThread.getMethod("getSystemContext").invoke(thread);
++        PackageManager pm = context.getPackageManager();
++        String packageName = args.length == 0 ? "top.absor.absorflix.tv" : args[0];
++        ApplicationInfo app = pm.getApplicationInfo(packageName, 0);
++        System.out.println(packageName + " " + pm.getPackageInfo(packageName, 0).versionName);
++        check("application icon", app.loadIcon(pm));
++        check("application banner", app.loadBanner(pm));
++        check("application logo", app.loadLogo(pm));
++        for (String category : new String[] {Intent.CATEGORY_LAUNCHER, Intent.CATEGORY_LEANBACK_LAUNCHER}) {
++            Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(category).setPackage(packageName);
++            boolean found = false;
++            for (ResolveInfo activity : pm.queryIntentActivities(intent, 0)) {
++                found = true;
++                check(category + " icon", activity.loadIcon(pm));
++                check(category + " banner", activity.activityInfo.loadBanner(pm));
++            }
++            if (!found) {
++                System.out.println(category + ": no launcher activity FAIL");
++                valid = false;
++            }
++        }
++        System.exit(valid ? 0 : 1);
++    }
++}
 diff --git a/branding/README.md b/branding/README.md
 new file mode 100644
-index 0000000..f8a7d25
+index 0000000..7ede768
 --- /dev/null
 +++ b/branding/README.md
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,103 @@
 +# Absorflix TV
 +
 +Cliente nativo para Android TV / Google TV y Fire TV (Android/Fire OS), basado en Jellyfin Android TV **v0.19.10**, commit `984181a3d6ab14e9a6d2dcc850c582e1c138bd95`.
@@ -8302,17 +8362,17 @@ index 0000000..f8a7d25
 +
 +## Estado y alcance
 +
-+Versión preliminar **1.0.0-preview.3**, código 3. Esta versión añade banner, logo e icono horizontal explícitos al acceso de TV, incluido su alias antiguo. El icono de aplicación sigue siendo cuadrado para ajustes e instalación. La intro usa el mismo movimiento continuo que la web, con fundidos solapados y dos planos de luces. Los degradados se preparan una vez, fuera del dibujado de cada fotograma. La animación arranca con el audio preparado y conserva la misma firma de aplicación para actualizar la versión 1. No equivale a una validación en todos los modelos de TV. Hay que verificar instalación, reproducción, mandos y actualizaciones en el dispositivo real del usuario antes de declararla definitiva. Fire TV compatible con Android/Fire OS; dispositivos con otro sistema requieren otro cliente. El reproductor experimental de vídeo de upstream sólo aparece en compilaciones de desarrollo y aún no tiene esta intro.
++Versión preliminar **1.0.0-preview.4**, código 4. Esta versión corrige el icono principal de la aplicación: ahora también usa el logo horizontal. En preview.3 sólo se cambió el acceso de TV; los launchers que leían ApplicationInfo seguían recibiendo el icono cuadrado. La intro usa el mismo movimiento continuo que la web, con fundidos solapados y dos planos de luces. Los degradados se preparan una vez, fuera del dibujado de cada fotograma. La animación arranca con el audio preparado y conserva la misma firma de aplicación para actualizar la versión 1. No equivale a una validación en todos los modelos de TV. Hay que verificar instalación, reproducción, mandos y actualizaciones en el dispositivo real del usuario antes de declararla definitiva. Fire TV compatible con Android/Fire OS; dispositivos con otro sistema requieren otro cliente. El reproductor experimental de vídeo de upstream sólo aparece en compilaciones de desarrollo y aún no tiene esta intro.
 +
 +La web pública de Absorflix está desplegada (`10.11.6-absorflix-20260915-332c13f5`). El APK, manifiesto, fuente y licencia se publicaron el 15 de septiembre de 2026 y se verificaron íntegramente por HTTPS. Descarga: **https://player.absor.top/tv**. Jellyfin no sirve archivos APK directamente: un contenedor Nginx dedicado y una ruta de HAProxy sirven la carpeta publicada. La configuración y el respaldo están documentados en `../../jellyfin-web/deployment/clients/tv-hosting/README.md`. No se han instalado apps en televisores físicos ni publicado en tiendas.
 +
 +## Logo horizontal y Fire TV
 +
-+El launcher principal declara `@mipmap/app_banner` como `banner`, `logo` e `icon`, para launchers que consultan el icono de la actividad en vez del banner. Los recursos 16:9 incluyen las cinco densidades Android (160×90 a 640×360); el icono cuadrado adaptativo de la aplicación se conserva para superficies que lo necesitan.
++La aplicación, el acceso principal y su alias declaran `@mipmap/app_banner` como `banner`, `logo` e `icon`. Tanto ApplicationInfo como ResolveInfo deben devolver un BitmapDrawable 16:9 con el logotipo completo. Los recursos incluyen las cinco densidades Android (160×90 a 640×360). Los recursos cuadrados originales permanecen en el fuente, pero ya no son el icono de aplicación; menús que fuercen un marco cuadrado podrán ajustar el banner a ese marco.
 +
 +`branding/assets/fire-tv-tile.png` contiene el logo original sobre fondo opaco de 1280×720. El logotipo queda dentro del área central segura de 882×448 indicada por Amazon. El paquete lo publica como `absorflix-tv-<versión>-fire-tv-tile.png`.
 +
-+La ficha de Amazon Appstore usa una imagen suministrada por separado del icono del APK. Un launcher Fire TV puede aplicar su propio marco o consultar sólo el icono de aplicación a una app instalada manualmente; estos recursos no garantizan el mismo mosaico en todos los modelos. No se ha publicado una ficha en Amazon Appstore. Referencias: [iconos Android TV](https://developer.android.com/design/ui/tv/guides/system/tv-app-icon-guidelines) y [recursos Fire TV de Amazon](https://developer.amazon.com/docs/app-submission/appstore-details.html).
++La ficha de Amazon Appstore usa una imagen suministrada por separado del icono del APK. Un launcher Fire TV puede aplicar su propio marco a una app instalada manualmente; estos recursos no garantizan el mismo mosaico en todos los modelos. No se ha publicado una ficha en Amazon Appstore. Referencias: [iconos Android TV](https://developer.android.com/design/ui/tv/guides/system/tv-app-icon-guidelines) y [recursos Fire TV de Amazon](https://developer.amazon.com/docs/app-submission/appstore-details.html).
 +
 +## Compilar
 +
@@ -8330,7 +8390,7 @@ index 0000000..f8a7d25
 +Para una versión posterior, aumenta ambos valores, manteniendo la clave:
 +
 +```sh
-+ABSORFLIX_VERSION=1.0.0-preview.4 ABSORFLIX_VERSION_CODE=4 python3 branding/release.py
++ABSORFLIX_VERSION=1.0.0-preview.5 ABSORFLIX_VERSION_CODE=5 python3 branding/release.py
 +```
 +
 +`branding/generate_assets.py` exporta los SVG originales a los recursos Android y a los PNG de cada densidad. Requiere `rsvg-convert`. El audio se conserva byte a byte del archivo proporcionado para la web (`src/assets/audio/absorflix/intro.mp3`); fuente facilitada por el usuario: https://www.myinstants.com/es/instant/netflix-intro-79459/ (archivo `nouveau-jingle-netflix.mp3`). No se sintetiza ni sustituye por otro sonido.
@@ -8340,7 +8400,7 @@ index 0000000..f8a7d25
 +Desde este Mac, autenticándose en SSH cuando lo solicite el terminal:
 +
 +```sh
-+scp branding/dist/1.0.0-preview.3/absorflix-tv-1.0.0-preview.3-nas.tar.gz root@192.168.1.110:/mnt/user/system/docker-compose/jellyfin_new/
++scp branding/dist/1.0.0-preview.4/absorflix-tv-1.0.0-preview.4-nas.tar.gz root@192.168.1.110:/mnt/user/system/docker-compose/jellyfin_new/
 +ssh root@192.168.1.110
 +```
 +
@@ -8348,9 +8408,9 @@ index 0000000..f8a7d25
 +
 +```sh
 +cd /mnt/user/system/docker-compose/jellyfin_new
-+mkdir absorflix-tv-1.0.0-preview.3
-+tar -xzf absorflix-tv-1.0.0-preview.3-nas.tar.gz -C absorflix-tv-1.0.0-preview.3
-+bash absorflix-tv-1.0.0-preview.3/install-nas.sh
++mkdir absorflix-tv-1.0.0-preview.4
++tar -xzf absorflix-tv-1.0.0-preview.4-nas.tar.gz -C absorflix-tv-1.0.0-preview.4
++bash absorflix-tv-1.0.0-preview.4/install-nas.sh
 +```
 +
 +El instalador verifica los archivos y localiza el montaje persistente del cliente web. Publica los artefactos y al final cambia el manifiesto; conserva los APK anteriores y una copia del manifiesto anterior. No reinicia Jellyfin. Rechaza sobrescribir el mismo nombre de versión con bytes distintos. Si el proxy limita el tamaño de descarga, hay que permitir el tamaño del APK (unos 21 MiB).
@@ -8366,6 +8426,19 @@ index 0000000..f8a7d25
 +Cuando se sustituya la versión del cliente web, hay que volver a copiar `web/absorflix/tv` al nuevo montaje antes de publicarlo para conservar las descargas. El instalador se puede volver a ejecutar con el mismo paquete.
 +
 +## Pruebas
++
++Para verificar los recursos que realmente recibe un launcher externo del APK instalado:
++
++```sh
++python3 branding/check_launcher_icons.py --serial emulator-5580
++```
++
++La prueba consulta por PackageManager el icono, banner y logo de ApplicationInfo,
++y el icono y banner de los accesos LAUNCHER y LEANBACK_LAUNCHER. Falla si alguno
++no es 16:9. Se ejecuta fuera de la aplicación y no forma parte del APK. Requiere
++un dispositivo de pruebas conectado por ADB y conserva su instalación y datos.
++No prueba el marco que dibuja el launcher propietario de Amazon.
++
 +
 +- 19 pruebas unitarias (incluyen 6 de intro y política de actualizaciones) y 4 pruebas del instalador NAS.
 +- Compilaciones debug y release; firma verificada con apksigner.
@@ -8809,6 +8882,44 @@ index 0000000..a239763
 +
 +  <path fill="url(#flixGrad)" d="M867.02 201L908.48 201L908.48 137.34L978.37 137.34L978.37 104.22L908.48 104.22L908.48 59.83L986.00 59.83L986.00 26L867.02 26ZM1048.72 26L1007.73 26L1007.73 201L1048.72 201ZM1075.85 201L1116.84 201L1116.84 69.69L1075.85 69.69ZM1096.29 54.31C1108.03 54.31 1117.54 45.50 1117.54 34.57C1117.54 23.65 1108.03 14.84 1096.29 14.84C1084.66 14.84 1075.14 23.65 1075.14 34.57C1075.14 45.50 1084.66 54.31 1096.29 54.31ZM1134.34 201L1176.97 201L1189.42 178.21C1193.89 169.88 1197.64 161.30 1201.29 152.85C1205.16 161.30 1209.16 169.88 1213.62 178.21L1226.30 201L1269.52 201L1228.42 133.82L1267.76 69.69L1225.01 69.69L1214.44 88.48C1209.86 96.70 1205.98 105.40 1202.23 113.85C1198.47 105.40 1194.71 96.82 1190.36 88.48L1180.26 69.69L1136.81 69.69L1175.09 133.58Z"/>
 +</svg>
+diff --git a/branding/check_launcher_icons.py b/branding/check_launcher_icons.py
+new file mode 100644
+index 0000000..6ee75b0
+--- /dev/null
++++ b/branding/check_launcher_icons.py
+@@ -0,0 +1,32 @@
++#!/usr/bin/env python3
++"""Check application AND activity artwork in the installed APK using PackageManager.
++
++Requires JDK 21, Android SDK 36 and an ADB-connected test device. Leaves the app,
++its data and the small diagnostic artifacts intact. Does not restart the device.
++"""
++import argparse
++import os
++from pathlib import Path
++import subprocess
++import tempfile
++
++parser = argparse.ArgumentParser(description=__doc__)
++parser.add_argument('--serial', required=True)
++parser.add_argument('--package', default='top.absor.absorflix.tv')
++args = parser.parse_args()
++sdk = Path(os.environ.get('ANDROID_HOME', '/opt/homebrew/share/android-commandlinetools'))
++jdk = Path(os.environ.get('JAVA_HOME', '/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home'))
++work = Path(tempfile.mkdtemp(prefix='absorflix-launcher-check-'))
++source = Path(__file__).with_name('LauncherIconProbe.java')
++env = dict(os.environ, JAVA_HOME=str(jdk))
++subprocess.run([str(jdk/'bin/javac'), '--release', '8', '-cp', str(sdk/'platforms/android-36/android.jar'),
++                '-d', str(work), str(source)], check=True, env=env)
++dex = work/'probe.jar'
++subprocess.run([str(sdk/'build-tools/36.0.0/d8'), '--min-api', '21', '--lib', str(sdk/'platforms/android-36/android.jar'),
++                '--output', str(dex), str(work/'LauncherIconProbe.class')], check=True, env=env)
++adb = [str(sdk/'platform-tools/adb'), '-s', args.serial]
++remote = f'/data/local/tmp/{work.name}.jar'
++subprocess.run([*adb, 'push', str(dex), remote], check=True)
++result = subprocess.run([*adb, 'shell', f'CLASSPATH={remote}', 'app_process', '/system/bin', 'LauncherIconProbe', args.package])
++print(f'Diagnostic retained at {work}', flush=True)
++raise SystemExit(result.returncode)
 diff --git a/branding/download.html b/branding/download.html
 new file mode 100644
 index 0000000..6150a2e
@@ -8973,7 +9084,7 @@ index 0000000..2592c3b
 +echo 'No se ha reiniciado Jellyfin.'
 diff --git a/branding/release.py b/branding/release.py
 new file mode 100755
-index 0000000..6c8cc76
+index 0000000..d19c300
 --- /dev/null
 +++ b/branding/release.py
 @@ -0,0 +1,78 @@
@@ -8991,8 +9102,8 @@ index 0000000..6c8cc76
 +PRIVATE = Path.home() / 'Library/Application Support/Absorflix/signing'
 +SDK = Path(os.environ.get('ANDROID_HOME', '/opt/homebrew/share/android-commandlinetools'))
 +JDK = Path(os.environ.get('JAVA_HOME', '/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home'))
-+VERSION = os.environ.get('ABSORFLIX_VERSION', '1.0.0-preview.3')
-+CODE = int(os.environ.get('ABSORFLIX_VERSION_CODE', '3'))
++VERSION = os.environ.get('ABSORFLIX_VERSION', '1.0.0-preview.4')
++CODE = int(os.environ.get('ABSORFLIX_VERSION_CODE', '4'))
 +OUT = ROOT / 'branding/dist' / VERSION
 +# Keep old APKs, manifests, source archives and signatures intact locally too.
 +if OUT.exists() and any(OUT.iterdir()):
