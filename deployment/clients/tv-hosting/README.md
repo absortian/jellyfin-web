@@ -5,9 +5,9 @@ Versión actualizada el 15 de septiembre de 2026:
 - Acceso corto: https://player.absor.top/tv
 - Página: https://player.absor.top/web/absorflix/tv/index.html
 - Manifiesto: https://player.absor.top/web/absorflix/tv/latest.json
-- APK: `absorflix-tv-1.0.0-preview.2.apk`, 21 872 160 bytes.
-- SHA-256: `d0ba3a5905622f7a21be1be7275935aaa17701141acf856a269254f0760df111`.
-- Incluye la intro nativa fluida. El APK preview.1 sigue disponible sin cambios.
+- APK: `absorflix-tv-1.0.0-preview.3.apk`, 21 872 219 bytes.
+- SHA-256: `16a981d3000c892c8e11fe2ec6ddee4fb31e064c0501679bd1493e52a26b13f0`.
+- Incluye el logo horizontal explícito del launcher y una imagen Fire TV de 1280×720. Los APK preview.1 y preview.2 siguen disponibles sin cambios.
 - [Código, paquete y validación de la versión actual](../androidtv/README.md).
 
 Jellyfin 10.11.6 devuelve 404 para `.apk`, aunque el archivo exista en su montaje web. Este contenedor Nginx sirve la carpeta de descargas con el tipo `application/vnd.android.package-archive`. Sólo escucha en `127.0.0.1:18967` del NAS; HAProxy publica la ruta del dominio existente.
@@ -59,4 +59,4 @@ Si se cambia el montaje de Jellyfin a una nueva versión web, copia primero las 
 
 ## Verificación realizada
 
-Se descargaron por HTTPS los seis archivos públicos (página, manifiesto, APK, fuente, licencia y logo), con HTTP 200 y SHA-256 idéntico al paquete local. El APK se entrega con el tipo MIME correcto. La API pública de Jellyfin continuó respondiendo tras recargar HAProxy. La actualización de preview.1 a preview.2 se verificó desde la propia app en el emulador Android TV, descargando del dominio público y confirmando el instalador Android. No se desinstaló la app ni se reinició Jellyfin. La validación en televisores físicos sigue pendiente.
+Se descargaron por HTTPS los siete archivos públicos (página, manifiesto, APK, fuente, licencia, logo y mosaico Fire TV), con HTTP 200 y SHA-256 idéntico al paquete local. El APK se entrega con el tipo MIME correcto. La API pública de Jellyfin continuó respondiendo tras recargar HAProxy. La actualización de preview.1 a preview.2 se verificó desde la propia app en el emulador Android TV, descargando del dominio público y confirmando el instalador Android. No se desinstaló la app ni se reinició Jellyfin. También se comprobó la actualización preview.2 → preview.3 con ADB, el banner en la fila de aplicaciones y la apertura desde el launcher de Android TV API 31. La validación en televisores físicos sigue pendiente.

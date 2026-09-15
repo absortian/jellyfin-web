@@ -13,7 +13,7 @@ index c25514a..3cdacfe 100644
 +*.keystore
 +*.jks
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index 5b2091f..be8be74 100644
+index 5b2091f..ccfd6b3 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
 @@ -15,9 +15,10 @@ android {
@@ -24,8 +24,8 @@ index 5b2091f..be8be74 100644
 -		versionName = project.getVersionName()
 -		versionCode = getVersionCode(versionName!!)
 +		applicationId = "top.absor.absorflix.tv"
-+		versionName = providers.gradleProperty("absorflix.version").getOrElse("1.0.0-preview.2")
-+		versionCode = providers.gradleProperty("absorflix.versionCode").getOrElse("2").toInt()
++		versionName = providers.gradleProperty("absorflix.version").getOrElse("1.0.0-preview.3")
++		versionCode = providers.gradleProperty("absorflix.versionCode").getOrElse("3").toInt()
 +		buildConfigField("String", "ABSORFLIX_SERVER_URL", "\"https://player.absor.top\"")
  	}
  
@@ -66,7 +66,7 @@ index 5b2091f..be8be74 100644
  tasks.register("versionTxt") {
  	val path = layout.buildDirectory.asFile.get().resolve("version.txt")
 diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
-index 356abfc..730eee9 100644
+index 356abfc..7d14209 100644
 --- a/app/src/main/AndroidManifest.xml
 +++ b/app/src/main/AndroidManifest.xml
 @@ -6,6 +6,9 @@
@@ -79,7 +79,15 @@ index 356abfc..730eee9 100644
      <!-- Generic permissions -->
      <uses-permission android:name="android.permission.INTERNET" />
      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-@@ -105,6 +108,14 @@
+@@ -46,6 +49,7 @@
+         android:fullBackupContent="@xml/backup_content"
+         android:icon="@mipmap/app_icon"
+         android:label="@string/app_name"
++        android:logo="@mipmap/app_banner"
+         android:largeHeap="true"
+         android:supportsRtl="true"
+         android:theme="@style/Theme.Jellyfin"
+@@ -105,11 +109,22 @@
              android:exported="true"
              android:initOrder="10" />
  
@@ -94,6 +102,24 @@ index 356abfc..730eee9 100644
          <!-- Authentication -->
          <activity
              android:name=".ui.startup.StartupActivity"
++            android:banner="@mipmap/app_banner"
+             android:exported="true"
++            android:icon="@mipmap/app_banner"
+             android:launchMode="singleTask"
++            android:logo="@mipmap/app_banner"
+             android:noHistory="true"
+             android:windowSoftInputMode="adjustNothing">
+             <intent-filter>
+@@ -127,6 +142,9 @@
+         </activity>
+         <activity-alias
+             android:name=".startup.StartupActivity"
++            android:banner="@mipmap/app_banner"
++            android:icon="@mipmap/app_banner"
++            android:logo="@mipmap/app_banner"
+             android:targetActivity=".ui.startup.StartupActivity" />
+ 
+         <!-- Main application -->
 diff --git a/app/src/main/java/org/jellyfin/androidtv/di/AppModule.kt b/app/src/main/java/org/jellyfin/androidtv/di/AppModule.kt
 index 04a84e1..c72a05d 100644
 --- a/app/src/main/java/org/jellyfin/androidtv/di/AppModule.kt
@@ -8257,10 +8283,10 @@ index 0000000..4a89abd
 +})
 diff --git a/branding/README.md b/branding/README.md
 new file mode 100644
-index 0000000..09020b4
+index 0000000..f8a7d25
 --- /dev/null
 +++ b/branding/README.md
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,90 @@
 +# Absorflix TV
 +
 +Cliente nativo para Android TV / Google TV y Fire TV (Android/Fire OS), basado en Jellyfin Android TV **v0.19.10**, commit `984181a3d6ab14e9a6d2dcc850c582e1c138bd95`.
@@ -8276,9 +8302,17 @@ index 0000000..09020b4
 +
 +## Estado y alcance
 +
-+Versión preliminar **1.0.0-preview.2**, código 2. La intro usa el mismo movimiento continuo que la web, con fundidos solapados y dos planos de luces. Los degradados se preparan una vez, fuera del dibujado de cada fotograma. La animación arranca con el audio preparado y conserva la misma firma de aplicación para actualizar la versión 1. No equivale a una validación en todos los modelos de TV. Hay que verificar instalación, reproducción, mandos y actualizaciones en el dispositivo real del usuario antes de declararla definitiva. Fire TV compatible con Android/Fire OS; dispositivos con otro sistema requieren otro cliente. El reproductor experimental de vídeo de upstream sólo aparece en compilaciones de desarrollo y aún no tiene esta intro.
++Versión preliminar **1.0.0-preview.3**, código 3. Esta versión añade banner, logo e icono horizontal explícitos al acceso de TV, incluido su alias antiguo. El icono de aplicación sigue siendo cuadrado para ajustes e instalación. La intro usa el mismo movimiento continuo que la web, con fundidos solapados y dos planos de luces. Los degradados se preparan una vez, fuera del dibujado de cada fotograma. La animación arranca con el audio preparado y conserva la misma firma de aplicación para actualizar la versión 1. No equivale a una validación en todos los modelos de TV. Hay que verificar instalación, reproducción, mandos y actualizaciones en el dispositivo real del usuario antes de declararla definitiva. Fire TV compatible con Android/Fire OS; dispositivos con otro sistema requieren otro cliente. El reproductor experimental de vídeo de upstream sólo aparece en compilaciones de desarrollo y aún no tiene esta intro.
 +
-+La web pública de Absorflix está desplegada (`10.11.6-absorflix-20260914-108a3928`). El APK, manifiesto, fuente y licencia se publicaron el 15 de septiembre de 2026 y se verificaron íntegramente por HTTPS. Descarga: **https://player.absor.top/tv**. Jellyfin no sirve archivos APK directamente: un contenedor Nginx dedicado y una ruta de HAProxy sirven la carpeta publicada. La configuración y el respaldo están documentados en `../../jellyfin-web/deployment/clients/tv-hosting/README.md`. No se han instalado apps en televisores físicos ni publicado en tiendas.
++La web pública de Absorflix está desplegada (`10.11.6-absorflix-20260915-332c13f5`). El APK, manifiesto, fuente y licencia se publicaron el 15 de septiembre de 2026 y se verificaron íntegramente por HTTPS. Descarga: **https://player.absor.top/tv**. Jellyfin no sirve archivos APK directamente: un contenedor Nginx dedicado y una ruta de HAProxy sirven la carpeta publicada. La configuración y el respaldo están documentados en `../../jellyfin-web/deployment/clients/tv-hosting/README.md`. No se han instalado apps en televisores físicos ni publicado en tiendas.
++
++## Logo horizontal y Fire TV
++
++El launcher principal declara `@mipmap/app_banner` como `banner`, `logo` e `icon`, para launchers que consultan el icono de la actividad en vez del banner. Los recursos 16:9 incluyen las cinco densidades Android (160×90 a 640×360); el icono cuadrado adaptativo de la aplicación se conserva para superficies que lo necesitan.
++
++`branding/assets/fire-tv-tile.png` contiene el logo original sobre fondo opaco de 1280×720. El logotipo queda dentro del área central segura de 882×448 indicada por Amazon. El paquete lo publica como `absorflix-tv-<versión>-fire-tv-tile.png`.
++
++La ficha de Amazon Appstore usa una imagen suministrada por separado del icono del APK. Un launcher Fire TV puede aplicar su propio marco o consultar sólo el icono de aplicación a una app instalada manualmente; estos recursos no garantizan el mismo mosaico en todos los modelos. No se ha publicado una ficha en Amazon Appstore. Referencias: [iconos Android TV](https://developer.android.com/design/ui/tv/guides/system/tv-app-icon-guidelines) y [recursos Fire TV de Amazon](https://developer.amazon.com/docs/app-submission/appstore-details.html).
 +
 +## Compilar
 +
@@ -8296,7 +8330,7 @@ index 0000000..09020b4
 +Para una versión posterior, aumenta ambos valores, manteniendo la clave:
 +
 +```sh
-+ABSORFLIX_VERSION=1.0.0-preview.3 ABSORFLIX_VERSION_CODE=3 python3 branding/release.py
++ABSORFLIX_VERSION=1.0.0-preview.4 ABSORFLIX_VERSION_CODE=4 python3 branding/release.py
 +```
 +
 +`branding/generate_assets.py` exporta los SVG originales a los recursos Android y a los PNG de cada densidad. Requiere `rsvg-convert`. El audio se conserva byte a byte del archivo proporcionado para la web (`src/assets/audio/absorflix/intro.mp3`); fuente facilitada por el usuario: https://www.myinstants.com/es/instant/netflix-intro-79459/ (archivo `nouveau-jingle-netflix.mp3`). No se sintetiza ni sustituye por otro sonido.
@@ -8306,7 +8340,7 @@ index 0000000..09020b4
 +Desde este Mac, autenticándose en SSH cuando lo solicite el terminal:
 +
 +```sh
-+scp branding/dist/1.0.0-preview.2/absorflix-tv-1.0.0-preview.2-nas.tar.gz root@192.168.1.110:/mnt/user/system/docker-compose/jellyfin_new/
++scp branding/dist/1.0.0-preview.3/absorflix-tv-1.0.0-preview.3-nas.tar.gz root@192.168.1.110:/mnt/user/system/docker-compose/jellyfin_new/
 +ssh root@192.168.1.110
 +```
 +
@@ -8314,9 +8348,9 @@ index 0000000..09020b4
 +
 +```sh
 +cd /mnt/user/system/docker-compose/jellyfin_new
-+mkdir absorflix-tv-1.0.0-preview.2
-+tar -xzf absorflix-tv-1.0.0-preview.2-nas.tar.gz -C absorflix-tv-1.0.0-preview.2
-+bash absorflix-tv-1.0.0-preview.2/install-nas.sh
++mkdir absorflix-tv-1.0.0-preview.3
++tar -xzf absorflix-tv-1.0.0-preview.3-nas.tar.gz -C absorflix-tv-1.0.0-preview.3
++bash absorflix-tv-1.0.0-preview.3/install-nas.sh
 +```
 +
 +El instalador verifica los archivos y localiza el montaje persistente del cliente web. Publica los artefactos y al final cambia el manifiesto; conserva los APK anteriores y una copia del manifiesto anterior. No reinicia Jellyfin. Rechaza sobrescribir el mismo nombre de versión con bytes distintos. Si el proxy limita el tamaño de descarga, hay que permitir el tamaño del APK (unos 21 MiB).
@@ -8340,7 +8374,376 @@ index 0000000..09020b4
 +
 +El APK release instalado en el emulador Android TV consultó correctamente el manifiesto público y mostró que tenía la última versión. Evidencia: `branding/reports/release-update-check-hosted.png`.
 +
-+Pendiente: actualización real entre dos versiones desde el dominio público, pruebas en TV física (subtítulos, reanudación, siguiente episodio, HDR/sonido multicanal, reproductores externos) y confirmar otras plataformas requeridas por el usuario.
++La actualización de preview.1 a preview.2 se verificó desde la propia app en Android TV API 31, conservando la instalación.
++
++Pendiente: pruebas en TV física (subtítulos, reanudación, siguiente episodio, HDR/sonido multicanal, reproductores externos) y confirmar otras plataformas requeridas por el usuario.
+diff --git a/branding/assets/fire-tv-tile.png b/branding/assets/fire-tv-tile.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..2f09038a2fb701ae5013b2a1d5356ff07b45187b
+GIT binary patch
+literal 22819
+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
+Bt+oIF
+
+literal 0
+HcmV?d00001
+
 diff --git a/branding/assets/icon.svg b/branding/assets/icon.svg
 new file mode 100644
 index 0000000..ae95b66
@@ -8430,10 +8833,10 @@ index 0000000..6150a2e
 +</html>
 diff --git a/branding/generate_assets.py b/branding/generate_assets.py
 new file mode 100644
-index 0000000..1261e7e
+index 0000000..4df4d9e
 --- /dev/null
 +++ b/branding/generate_assets.py
-@@ -0,0 +1,84 @@
+@@ -0,0 +1,88 @@
 +#!/usr/bin/env python3
 +"""Export supplied Absorflix SVGs to Android resources. Requires rsvg-convert."""
 +from pathlib import Path
@@ -8513,6 +8916,10 @@ index 0000000..1261e7e
 +# Keep drawable banner in sync with launchers.
 +(RES/'drawable-nodpi').mkdir(exist_ok=True)
 +render(banner, 640, 360, RES/'drawable-nodpi/absorflix_banner.png')
++# Amazon's Appstore tile is separate from the Android launcher resources.
++# Keep the entire wordmark inside its centered 882 x 448 safe area.
++fire_tv_tile = f'<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#080c14"/><svg x="220" y="289" width="840" height="142">{logo_body}</svg></svg>'
++render(fire_tv_tile, 1280, 720, ASSETS/'fire-tv-tile.png')
 +(RES/'drawable/app_banner_foreground.xml').write_text('<bitmap xmlns:android="http://schemas.android.com/apk/res/android" android:src="@drawable/absorflix_banner" android:gravity="fill" />\n')
 +for name in ['app_icon_background', 'app_banner_background']:
 +    path = RES/f'drawable/{name}.xml'
@@ -8566,10 +8973,10 @@ index 0000000..2592c3b
 +echo 'No se ha reiniciado Jellyfin.'
 diff --git a/branding/release.py b/branding/release.py
 new file mode 100755
-index 0000000..39d94f5
+index 0000000..6c8cc76
 --- /dev/null
 +++ b/branding/release.py
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,78 @@
 +#!/usr/bin/env python3
 +"""Build a signed APK and a self-contained NAS distribution with matching GPL source."""
 +import hashlib
@@ -8584,8 +8991,8 @@ index 0000000..39d94f5
 +PRIVATE = Path.home() / 'Library/Application Support/Absorflix/signing'
 +SDK = Path(os.environ.get('ANDROID_HOME', '/opt/homebrew/share/android-commandlinetools'))
 +JDK = Path(os.environ.get('JAVA_HOME', '/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home'))
-+VERSION = os.environ.get('ABSORFLIX_VERSION', '1.0.0-preview.2')
-+CODE = int(os.environ.get('ABSORFLIX_VERSION_CODE', '2'))
++VERSION = os.environ.get('ABSORFLIX_VERSION', '1.0.0-preview.3')
++CODE = int(os.environ.get('ABSORFLIX_VERSION_CODE', '3'))
 +OUT = ROOT / 'branding/dist' / VERSION
 +# Keep old APKs, manifests, source archives and signatures intact locally too.
 +if OUT.exists() and any(OUT.iterdir()):
@@ -8634,6 +9041,7 @@ index 0000000..39d94f5
 +        path = ROOT/name
 +        if path.is_file(): archive.add(path, arcname=f'absorflix-tv-{VERSION}/{name}', recursive=False)
 +shutil.copy2(ROOT/'branding/assets/logo.svg', public/'logo.svg')
++shutil.copy2(ROOT/'branding/assets/fire-tv-tile.png', public/f'absorflix-tv-{VERSION}-fire-tv-tile.png')
 +shutil.copy2(ROOT/'LICENSE', public/'LICENSE.txt')
 +html = (ROOT/'branding/download.html').read_text().replace('{{VERSION}}', VERSION).replace('{{APK}}', apk_name).replace('{{SOURCE}}', source_name)
 +(public/'index.html').write_text(html)
