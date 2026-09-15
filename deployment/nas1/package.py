@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Package an already-built, matching 10.11.6 worktree for NAS1."""
+import argparse
 import datetime
 import hashlib
 import json
@@ -11,9 +12,13 @@ import tempfile
 
 project = Path(__file__).resolve().parents[2]
 source = project.parent / 'jellyfin-web-10.11.6'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--dist-dir', type=Path, help='Build output directory; defaults to the 10.11.6 worktree dist.')
+args = parser.parse_args()
+dist = args.dist_dir.resolve() if args.dist_dir else source / 'dist'
 assert json.loads((source / 'package.json').read_text())['version'] == '10.11.6'
 for required in ['index.html', 'themes/absorflix/theme.css', 'assets/audio/absorflix/intro.mp3']:
-    assert (source / 'dist' / required).is_file(), f'Missing build output: {required}'
+    assert (dist / required).is_file(), f'Missing build output: {required}'
 
 patch = subprocess.check_output(['git', 'diff', 'HEAD', '--binary'], cwd=source)
 untracked = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z'], cwd=source)
@@ -30,7 +35,7 @@ artifact = project / 'deployment/artifacts' / f'absorflix-web-10.11.6-{build_id}
 artifact.parent.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(prefix='absorflix-package-') as temp:
     staging = Path(temp)
-    shutil.copytree(source / 'dist', staging / 'web')
+    shutil.copytree(dist, staging / 'web')
     for name in ['deploy.sh', 'rollback.sh', 'README.md']:
         shutil.copy2(Path(__file__).parent / name, staging / name)
     (staging / 'RELEASE').write_text(release_id + '\n')

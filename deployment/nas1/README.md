@@ -32,6 +32,38 @@ Los arranques posteriores deben usar Compose desde el directorio original, sin
 omitir el override mediante un `-f docker-compose.yml` aislado. Al actualizar
 Jellyfin, preparar primero una web Absorflix compatible con esa versión.
 
+## Actualizar la web sin recrear el contenedor
+
+Para cambios del cliente compatibles con el servidor 10.11.6, se puede compilar
+en una carpeta nueva y empaquetarla con
+`python3 deployment/nas1/package.py --dist-dir /ruta/a/la/compilacion`.
+Esto conserva el `dist` anterior. Copia el paquete y `apply-web-overlay.sh` al NAS,
+extrae el paquete en una carpeta nueva y ejecuta
+`bash apply-web-overlay.sh /ruta/a/la/version/extraida`.
+
+El script verifica el paquete y el montaje activo, respalda cada archivo que
+sustituye en `overlay-backup/web`, conserva los archivos adicionales (incluidos
+los APK) y publica `index.html` después de sus recursos. Si falla, restaura los
+archivos anteriores sin eliminar los recursos añadidos. No cambia Compose ni
+reinicia Jellyfin. Comprueba después la pantalla afectada y la descarga de la app.
+
+El enlace **Descargar la app para TV** del login apunta a
+`https://player.absor.top/tv`, está disponible sin iniciar sesión y mantiene el
+acceso por teclado y mando. La plantilla, estilos y traducciones de `master`
+se aplicaron también al árbol 10.11.6 antes de compilar.
+
+Despliegue del enlace: `10.11.6-absorflix-20260915-44ea57a5`.
+Paquete, script y archivos originales conservados en NAS1:
+`/mnt/user/system/docker-compose/jellyfin_new/absorflix-login-link-20260915-bCsQag/`.
+Los archivos sustituidos están en `release/overlay-backup/web/` dentro de esa ruta.
+El ajuste final de foco se aplicó como una corrección de ocho archivos sobre la
+primera compilación verificada; su respaldo está en `final-release/overlay-backup/web/`.
+El paquete completo final también se conserva en `deployment/artifacts/` del proyecto.
+Validado con la compilación de producción 10.11.6, Stylelint, ShellCheck y tres
+pruebas del overlay (conservación, rechazo de corrupción y recuperación ante fallo).
+En el login público se comprobó Tab → foco visible → Enter → página de descarga;
+el APK conservó su SHA-256 y Jellyfin no se reinició.
+
 ## Comprobación desde los clientes
 
 - Abrir `http://192.168.1.110:8096/web/` y hacer una recarga completa.

@@ -24,3 +24,33 @@
         width: fit-content;
     }
 }
+
+.absorflixTvDownload {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    text-align: center;
+}
+
+#loginPage .absorflixTvDownloadButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    padding: 0.9em 1em;
+    color: #06101c;
+    background: #4fd8ff;
+    border-radius: 0.5em;
+    text-decoration: none;
+
+    &:focus {
+        box-shadow: 0 0 0 3px #fff;
+    }
+}
+
+.absorflixTvDownloadHelp {
+    margin: 0.75em 0 0;
+    color: inherit;
+    font-size: 0.85em;
+    line-height: 1.5;
+    opacity: 0.8;
+}
