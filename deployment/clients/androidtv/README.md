@@ -5,6 +5,11 @@ Descarga: **https://player.absor.top/tv**. También aparece desde el login web.
 La app instalada consulta la actualización desde Ajustes → Acerca de →
 Actualizaciones de Absorflix. Android pide confirmar la instalación.
 
+**Incidencia Fire TV confirmada:** la foto del dispositivo con preview.4 muestra
+el banner comprimido en un cuadrado con franjas grises a los lados. Las pruebas
+de recursos del APK no validan ese encuadre del menú de Amazon. La corrección no
+está completada; véase el [diagnóstico y la vía de publicación](fire-tv-launcher.md).
+
 Cuando un launcher consulta el icono principal de aplicación, preview.3 todavía
 entregaba el icono cuadrado adaptativo: sólo el acceso de TV tenía el banner.
 Preview.4 cambia también `application android:icon` a `@mipmap/app_banner`.
@@ -76,9 +81,9 @@ Preview.2 pasó 19 pruebas unitarias y la actualización preview.1 →
 preview.2 desde la pantalla de actualizaciones de la propia app. No se repitieron
 pruebas de reproducción para este cambio de recursos de launcher.
 
-El usuario comunicó que preview.3 seguía mostrándose cuadrada. Preview.4 corrige
-la consulta de ApplicationInfo que no se había validado antes. Queda comprobar
-el resultado en el dispositivo físico: el marco que dibuja el launcher de
-Amazon no se puede verificar con el emulador Android TV. El APK cubre Android TV,
+La foto aportada tras actualizar a preview.4 confirma que la casilla del menú
+de Fire TV sigue encuadrando el banner como un icono cuadrado. La validación de
+ApplicationInfo no implica que el menú de Amazon respete sus proporciones.
+El APK cubre Android TV,
 Google TV y Fire TV con Android/Fire OS. Otros sistemas y el cliente oficial de
 Jellyfin TV necesitan su propia integración.
